@@ -75,17 +75,19 @@ public class ClickHouseUtil {
     }
 
     public static List<Map<String, Object>> sqlQuery(String sql) {
+        return sqlQueryWithConnection(sql, getConnection());
+    }
+
+    public static List<Map<String, Object>> sqlQueryWithConnection(String sql, Connection connection) {
         log.info("Start " + sql);
         List<Map<String, Object>> data = new ArrayList<>();
-
-        Connection conn = getConnection();
-        if (conn == null) {
+        if (connection == null) {
             Map<String, Object> error = new HashMap<>();
             error.put("Error: ", "Failedl to get Connection " + connString());
             data.add(error);
         } else {
             try {
-                Statement statement = conn.createStatement();
+                Statement statement = connection.createStatement();
                 ResultSet results = statement.executeQuery(sql);
                 ResultSetMetaData rsmd = results.getMetaData();
                 while (results.next()) {

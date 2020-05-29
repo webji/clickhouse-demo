@@ -51,3 +51,34 @@ ORDER BY AvgDuration DESC
 LIMIT 10
 
 ```
+
+### Test
+
+```sql
+CREATE DATABASE IF NOT EXISTS tutorial;
+
+CREATE TABLE tutorial.table_a (
+    `id` UInt64,
+    `dbName` String,
+    `tableName` String,
+    `name` UInt8,
+    `desc` String
+)ENGINE = MergeTree()ORDER BY (intHash32(id))SAMPLE BY intHash32(id)SETTINGS index_granularity = 8192;
+
+CREATE TABLE tutorial.table_b (
+    `id` UInt64,
+    `dbName` String,
+    `tableName` String,
+    `name` UInt8,
+    `desc` String
+)ENGINE = MergeTree()ORDER BY (intHash32(id))SAMPLE BY intHash32(id)SETTINGS index_granularity = 8192;
+
+CREATE TABLE tutorial.table_c (
+    `id` UInt64,
+    `dbName` String,
+    `tableName` String,
+    `name` UInt8,
+    `desc` String
+)ENGINE = MergeTree()ORDER BY (intHash32(id))SAMPLE BY intHash32(id)SETTINGS index_granularity = 8192
+
+```

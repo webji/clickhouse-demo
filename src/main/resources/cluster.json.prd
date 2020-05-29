@@ -1,0 +1,35 @@
+{
+  "hosts": [
+    {
+      "hostname": "",
+      "ip": "30.79.126.188",
+      "port": 8123,
+      "username": "",
+      "password": "",
+      "tables": [
+        "table_a",
+        "table_b"
+      ]
+    },{
+      "hostname": "",
+      "ip": "30.79.126.200",
+      "port": 8123,
+      "username": "",
+      "password": "",
+      "tables": [
+        "table_b",
+        "table_c"
+      ]
+    },{
+      "hostname": "",
+      "ip": "30.79.126.27",
+      "port": 8123,
+      "username": "",
+      "password": "",
+      "tables": [
+        "table_c",
+        "table_a"
+      ]
+    }
+  ]
+}

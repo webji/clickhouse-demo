@@ -1,0 +1,36 @@
+{
+  "hosts": [
+    {
+      "hostname": "",
+      "ip": "192.168.0.40",
+      "port": 8123,
+      "username": "",
+      "password": "",
+      "tables": [
+        "tutorial.table_a",
+        "tutorial.table_a"
+      ]
+    },{
+      "hostname": "",
+      "ip": "192.168.0.41",
+      "port": 8123,
+      "username": "",
+      "password": "",
+      "tables": [
+        "tutorial.table_a",
+        "tutorial.table_c"
+      ]
+    },{
+      "hostname": "",
+      "ip": "192.168.0.42",
+      "port": 8123,
+      "username": "",
+      "password": "",
+      "tables": [
+        "tutorial.table_b",
+        "tutorial.table_c"
+      ]
+    }
+  ]
+}
+

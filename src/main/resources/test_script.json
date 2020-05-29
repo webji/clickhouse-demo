@@ -1,0 +1,48 @@
+[
+  {
+    "tableName": "tutorial.table_a",
+    "sync": false,
+    "callback": "http://localhost:8080/query/result",
+    "sql": "select * from tutorial.table_a limit 10"
+  },{
+  "tableName": "tutorial.table_b",
+  "sync": false,
+  "callback": "http://localhost:8080/query/result",
+  "sql": "select * from tutorial.table_b limit 10"
+  },{
+  "tableName": "tutorial.table_c",
+  "sync": false,
+  "callback": "http://localhost:8080/query/result",
+  "sql": "select * from tutorial.table_c limit 10"
+  },{
+  "tableName": "tutorial.table_a",
+  "sync": false,
+  "callback": "http://localhost:8080/query/result",
+  "sql": "select * from tutorial.table_a limit 10"
+},{
+  "tableName": "tutorial.table_b",
+  "sync": false,
+  "callback": "http://localhost:8080/query/result",
+  "sql": "select * from tutorial.table_b limit 10"
+},{
+  "tableName": "tutorial.table_c",
+  "sync": false,
+  "callback": "http://localhost:8080/query/result",
+  "sql": "select * from tutorial.table_c limit 10"
+},{
+  "tableName": "tutorial.table_a",
+  "sync": false,
+  "callback": "http://localhost:8080/query/result",
+  "sql": "select * from tutorial.table_a limit 10"
+},{
+  "tableName": "tutorial.table_b",
+  "sync": false,
+  "callback": "http://localhost:8080/query/result",
+  "sql": "select * from tutorial.table_b limit 10"
+},{
+  "tableName": "tutorial.table_c",
+  "sync": false,
+  "callback": "http://localhost:8080/query/result",
+  "sql": "select * from tutorial.table_c limit 10"
+}
+]

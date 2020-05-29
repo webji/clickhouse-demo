@@ -1,0 +1,6 @@
+{
+  "cacheEnabled": false,
+  "connectionMax": 20,
+  "dummy": true,
+  "dummyDelay": 30
+}
