@@ -21,6 +21,7 @@ public class MemoryJobQueue implements JobQueue {
         jobQueue.put(JobPriority.HIGH, new ConcurrentLinkedQueue<Job>());
         jobQueue.put(JobPriority.MEDIUM, new ConcurrentLinkedQueue<Job>());
         jobQueue.put(JobPriority.LOW, new ConcurrentLinkedQueue<Job>());
+        lock = new Object();
     }
 
     @Override
@@ -28,6 +29,7 @@ public class MemoryJobQueue implements JobQueue {
         job.setStatus(QueryJobStatus.QUEUED);
         ConcurrentLinkedQueue queue = jobQueue.get(priority);
         queue.offer(job);
+        lockNotify();
     }
 
     @Override
@@ -73,6 +75,16 @@ public class MemoryJobQueue implements JobQueue {
             }
         }
         return true;
+    }
+
+    @Override
+    public int size() {
+        int size = 0;
+        for (JobPriority priority : JobPriority.values()) {
+            ConcurrentLinkedQueue jobs = jobQueue.get(priority);
+            size += jobs.size();
+        }
+        return size;
     }
 
     public void lockWait() {

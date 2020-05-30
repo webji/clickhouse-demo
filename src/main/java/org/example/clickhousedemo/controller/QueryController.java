@@ -8,6 +8,7 @@ import org.example.clickhousedemo.cluster.query.QueryManager;
 import org.example.clickhousedemo.http.request.QueryRequestBody;
 import org.example.clickhousedemo.http.ResponseMessage;
 import org.example.clickhousedemo.util.ClickHouseUtil;
+import org.example.clickhousedemo.util.IDGenerator;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -28,7 +29,9 @@ public class QueryController {
     public ResponseMessage postQuery(@RequestBody QueryRequestBody requestBody) {
         QueryManager queryManager = QueryManager.getInstance();
         QueryJob queryJob = QueryJob.fromRequest(requestBody);
+        queryJob.setId(IDGenerator.pickId());
         queryJob.setStatus(QueryJobStatus.INITIALIZED);
+        log.debug("Received Job: " + queryJob);
         return queryManager.query(queryJob);
     }
 

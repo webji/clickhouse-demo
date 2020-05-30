@@ -2,8 +2,8 @@ package org.example.clickhousedemo.cluster.query;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 import org.example.clickhousedemo.cluster.db.TableClusterManager;
 import org.example.clickhousedemo.common.Job;
 import org.example.clickhousedemo.http.request.QueryRequestBody;
@@ -14,8 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@ToString(exclude = {"tableClusterManager"})
 public class QueryJob implements Job, Serializable {
-    String name;
+    Integer id;
     JobPriority priority;
     QueryJobStatus status;
     Boolean sync;
@@ -39,7 +40,6 @@ public class QueryJob implements Job, Serializable {
     public static QueryJob fromRequest(QueryRequestBody requestBody) {
         JobPriority priority = JobPriority.fromName(requestBody.getPriority());
         QueryJob queryJob = new QueryJob();
-        queryJob.setName(requestBody.getTableName());
         queryJob.setSync(requestBody.getSync());
         queryJob.setTableName(requestBody.getTableName());
         queryJob.setPriority(priority);

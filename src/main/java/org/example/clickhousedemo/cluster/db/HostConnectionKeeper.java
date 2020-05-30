@@ -1,6 +1,7 @@
 package org.example.clickhousedemo.cluster.db;
 
 import lombok.extern.slf4j.Slf4j;
+import org.example.clickhousedemo.cluster.query.MemoryJobQueue;
 import org.example.clickhousedemo.cluster.query.QueryJob;
 import org.example.clickhousedemo.cluster.query.QueryJobStatus;
 import org.example.clickhousedemo.common.JobWorker;
@@ -22,7 +23,7 @@ public class HostConnectionKeeper {
     HostConnectionManager hostConnectionManager;
 
     ExecutorService queryThread;
-    ConcurrentLinkedQueue<QueryJob> jobQueue;
+    MemoryJobQueue jobQueue;
     ConnectionWorker worker;
 
 
@@ -31,13 +32,32 @@ public class HostConnectionKeeper {
         this.hostConnectionManager = hostConnectionManager;
         this.name = "HostConnKeeper-" + i;
         queryThread = Executors.newSingleThreadExecutor();
-        jobQueue = new ConcurrentLinkedQueue<>();
+        jobQueue = new MemoryJobQueue();
         worker = new ConnectionWorker(name + "Worker", this);
         queryThread.submit(worker);
     }
 
-    public void query(QueryJob job) {
-        jobQueue.offer(job);
+    public void asyncQuery(QueryJob job) {
+        log.debug("Start Async Job, Add to jobQueue" + job);
+        jobQueue.push(job, job.getPriority());
+    }
+
+    public void syncQuery(QueryJob job) {
+        if (job != null) {
+            log.debug("Start Sync Job: " + job);
+            try {
+                job.setStatus(QueryJobStatus.QUERYING);
+                log.debug("Start Statement [sql=" + job.getSql() + "]");
+                Statement statement = connection.createStatement();
+                ResultSet resultSet = statement.executeQuery(job.getSql());
+                job.setResult(resultSet.toString());
+            } catch (SQLException e) {
+                log.error("Exception: ", e);
+                job.setResult("ERROR");
+            }
+            log.debug("Completed Sync Job Query, " + job);
+            hostConnectionManager.compelte(this, job);
+        }
     }
 
     public void stop() {
@@ -53,19 +73,11 @@ public class HostConnectionKeeper {
 
         @Override
         public void doJob() {
-            QueryJob job = jobQueue.poll();
-            if (job != null) {
-                try {
-                    job.setStatus(QueryJobStatus.QUERYING);
-                    log.debug("Start Statement [sql=" + job.getSql() + "]");
-                    Statement statement = connection.createStatement();
-                    ResultSet resultSet = statement.executeQuery(job.getSql());
-                    job.setResult(resultSet.toString());
-                    hostConnectionManager.compelte(hostConnectionKeeper, job);
-                } catch (SQLException e) {
-                    log.error("Exception: ", e);
-                }
+            QueryJob job;
+            while((job = (QueryJob)jobQueue.pop()) != null) {
+                syncQuery(job);
             }
+            jobQueue.lockWait();
         }
     }
 }

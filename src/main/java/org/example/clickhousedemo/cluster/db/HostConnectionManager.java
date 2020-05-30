@@ -49,18 +49,21 @@ public class HostConnectionManager {
     }
 
     public Integer currentConnections() {
-        return 0;
+        return busyConnections.size();
+    }
+
+    public Integer availableConnections() {
+        return config.getConnectionMax() - busyConnections.size();
     }
 
     public void query(QueryJob job) {
-        String sql = job.getSql();
-        if (sqlConnectionMap.keySet().contains(sql)) {
-            log.error("Failed to Query Job, job connection already existed, " + job);
+        HostConnectionKeeper hostConnectionKeeper = idleConnections.remove(0);
+        busyConnections.add(hostConnectionKeeper);
+        log.debug("Start Query, Move connectoin from IDLE to BUSY, [connection=" + hostConnectionKeeper.connection + "]");
+        if (job.getSync()) {
+            hostConnectionKeeper.syncQuery(job);
         } else {
-            HostConnectionKeeper hostConnectionKeeper = idleConnections.remove(0);
-            busyConnections.add(hostConnectionKeeper);
-            log.debug("Start Query, Move connectoin from IDLE to BUSY, [connection=" + hostConnectionKeeper.connection + "]");
-            hostConnectionKeeper.query(job);
+            hostConnectionKeeper.asyncQuery(job);
         }
     }
 

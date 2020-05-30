@@ -57,20 +57,15 @@ public class QueryManager {
     SQLCache sqlCache = new MemorySQLCache();
 
     ExecutorService threadExecutor;
-    QueryWorker queryWorker;
-    Object queryLock;
 
     ResultWorder resultWorder;
-    Object resultLock;
 
     Config config;
 
     private QueryManager() {
         initialize();
-        threadExecutor = Executors.newFixedThreadPool(2);
-        queryWorker = new QueryWorker("QueryWorker");
+        threadExecutor = Executors.newSingleThreadExecutor();
         resultWorder = new ResultWorder("ResultWorker");
-        threadExecutor.submit(queryWorker);
         threadExecutor.submit(resultWorder);
     }
 
@@ -91,13 +86,10 @@ public class QueryManager {
         for (String tableName: tableNameSet) {
             TableClusterManager tableClusterManager = tableClusterManagerMap.get(tableName);
             if (tableClusterManager == null) {
-                tableClusterManager = TableClusterManager.builder()
-                        .tableName(tableName)
-                        .resultQueue(resultQueue)
-                        .sqlQueryJobMap(new ConcurrentHashMap<>())
-                        .sqlCache(sqlCache)
-                        .config(config)
-                        .build();
+                tableClusterManager = new TableClusterManager(tableName);
+                tableClusterManager.setResultQueue(resultQueue);
+                tableClusterManager.setSqlCache(sqlCache);
+                tableClusterManager.setConfig(config);
                 tableClusterManagerMap.put(tableName, tableClusterManager);
             }
             for (HostConnectionManager hostConnectionManager : dbClusterManager.getHostConnectionManagerMap().values()) {
@@ -115,7 +107,6 @@ public class QueryManager {
         boolean cacheHit = false;
         String sql = job.getSql();
 
-        // Cache Enabled
         if (cacheEnabled) {
             cacheHit = sqlCache.containsKey(sql);
         }
@@ -128,63 +119,18 @@ public class QueryManager {
             } else {
                 job.setStatus(QueryJobStatus.SENDING);
             }
+            return ResponseMessage.success(job);
         } else {
             String tableName = job.getTableName();
             if (!tableNameSet.contains(tableName)) {
                 return ResponseMessage.fail("Table Not Existed: [tableName=" + tableName + "]", job);
             }
-            if (job.getSync()) {
-                TableClusterManager tableClusterManager = tableClusterManagerMap.get(tableName);
-                tableClusterManager.query(job);
-                job.setStatus(QueryJobStatus.SENDING);
-            } else {
-                log.debug("Push Job to jobQueue: [sql=" + job.getSql() + "]");
-                jobQueue.push(job, job.getPriority());
-            }
-        }
-        return ResponseMessage.success(job);
-    }
-
-
-    class QueryWorker extends JobWorker {
-
-
-        public QueryWorker(String name) {
-            super(name);
-        }
-
-        @Override
-        public void doJob() {
-            Job job = jobQueue.pop();
-            QueryJob queryJob = (QueryJob) job;
-            if (queryJob != null) {
-                doSyncJob(queryJob);
-            }
-        }
-
-        private void doSyncJob(QueryJob queryJob) {
-            if (queryJob != null) {
-                log.debug("Pick Job [sql=" + queryJob.getSql() + "]");
-                String tableName = queryJob.getName();
-                TableClusterManager tableClusterManager = tableClusterManagerMap.get(tableName);
-                if (tableClusterManager == null) {
-                    log.error("Failed to Process job", queryJob);
-                    queryJob.setResult("Failed to process Job, tableName is not supported");
-                    resultQueue.push(queryJob, queryJob.getPriority());
-                } else {
-                    if (!tableClusterManager.cachedAndAdd(queryJob)) {
-                        if (tableClusterManager.isFree()) {
-                            log.debug("TableClusterManager is Free: [tableName=" + tableName + "][sql=" + queryJob.getSql() + "]");
-                            tableClusterManager.query(queryJob);
-                        } else {
-                            log.debug("Connection is not Free, push back the job to queue");
-                            jobQueue.push(queryJob, queryJob.getPriority());
-                        }
-                    }
-                }
-            }
+            TableClusterManager tableClusterManager = tableClusterManagerMap.get(tableName);
+            log.debug("Found TableClusterManager for Job: [TableClusterManager=" + tableClusterManager + "][job=" + job + "]");
+            return tableClusterManager.query(job);
         }
     }
+
 
     class ResultWorder extends JobWorker {
         public ResultWorder(String name) {
@@ -193,8 +139,8 @@ public class QueryManager {
 
         @Override
         public void doJob() {
-            Job job = resultQueue.pop();
-            if (job != null) {
+            Job job;
+            while ((job = resultQueue.pop()) != null) {
                 log.debug("Sending Result of job: [job=" + job + "]");
                 QueryJob queryJob = (QueryJob)job;
                 String callback = queryJob.getCallbackUrl();
@@ -206,6 +152,7 @@ public class QueryManager {
                     doLogResult(queryJob);
                 }
             }
+            resultQueue.lockWait();
         }
 
         private void doHttpResult(QueryJob queryJob) {
