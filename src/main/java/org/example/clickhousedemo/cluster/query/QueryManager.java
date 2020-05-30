@@ -42,7 +42,6 @@ public class QueryManager {
      * Result Pending Job Queue
      */
     JobQueue resultQueue = new MemoryJobQueue();
-//    ConcurrentLinkedQueue<Job> resultQueue = new ConcurrentLinkedQueue<>();
 
     /**
      * All Supported Tables
@@ -142,6 +141,7 @@ public class QueryManager {
             Job job;
             while ((job = resultQueue.pop()) != null) {
                 log.debug("Sending Result of job: [job=" + job + "]");
+                job.setStatus(QueryJobStatus.SENDING);
                 QueryJob queryJob = (QueryJob)job;
                 String callback = queryJob.getCallbackUrl();
                 if (callback.startsWith("http")) {
@@ -160,10 +160,9 @@ public class QueryManager {
         }
 
         private void doFileResult(QueryJob queryJob) {
-            log.debug("Sending to File: [callback=" + queryJob.getCallbackUrl() + "]");
+            log.debug("Sending to File: [callback=" + queryJob.getCallbackUrl() + "], job=" + queryJob);
             try {
                 URI fileUri = new URI(queryJob.getCallbackUrl());
-                log.debug("fileUri=" + fileUri);
                 File resultFile = new File(fileUri);
                 if (!resultFile.exists()) {
                     resultFile.createNewFile();
@@ -173,7 +172,7 @@ public class QueryManager {
                 fileWriter.write(queryJob.toString());
                 fileWriter.write(System.lineSeparator());
                 fileWriter.close();
-                log.debug("Write log to File: [path=" + resultFile.getAbsolutePath() + "]");
+                log.debug("Write log to File: [path=" + resultFile.getAbsolutePath() + "][job=" + queryJob + "]");
 
             } catch (URISyntaxException | IOException e) {
                 log.error("Exception: ", e);

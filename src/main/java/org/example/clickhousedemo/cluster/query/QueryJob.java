@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@ToString(exclude = {"tableClusterManager"})
+@ToString(exclude = {"tableClusterManager", "logs", "tableName", "callbackUrl", "sender", "priority"})
 public class QueryJob implements Job, Serializable {
     Integer id;
     JobPriority priority;

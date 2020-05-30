@@ -47,10 +47,11 @@ public class HostConnectionKeeper {
             log.debug("Start Sync Job: " + job);
             try {
                 job.setStatus(QueryJobStatus.QUERYING);
-                log.debug("Start Statement [sql=" + job.getSql() + "]");
+                log.debug("Start Statement [job=" + job + "]");
                 Statement statement = connection.createStatement();
                 ResultSet resultSet = statement.executeQuery(job.getSql());
                 job.setResult(resultSet.toString());
+                log.debug("Complete Statement: " + job);
             } catch (SQLException e) {
                 log.error("Exception: ", e);
                 job.setResult("ERROR");

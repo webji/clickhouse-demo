@@ -77,7 +77,9 @@ public class TableClusterManager {
     public ResponseMessage waitJob(QueryJob job) {
         synchronized (job) {
             try {
+                log.debug("Try to wait: " + job);
                 job.wait();
+                log.debug("Succeed to wakeup by job" + job);
             } catch (InterruptedException e) {
                 log.error("Exception: ", e);
                 return ResponseMessage.fail("Job Wait Interrupted: " + job);
@@ -89,7 +91,9 @@ public class TableClusterManager {
     public ResponseMessage notifyJob(QueryJob job) {
         synchronized (job) {
             try {
+                log.debug("Try to notify: " + job);
                 job.notify();
+                log.debug("Succeed to notify job: " + job);
             } catch (Exception e) {
                 log.error("Exception: ", e);
                 return ResponseMessage.fail("Job Wait Interrupted: " + job);
@@ -139,7 +143,15 @@ public class TableClusterManager {
             sqlQueryJobMap.put(sql, jobList);
             return true;
         }
-        log.debug("Duplicate Sql Querying, Just add to List and Wait");
+
+        if (log.isDebugEnabled()) {
+            StringBuilder idList = new StringBuilder();
+            jobList.stream().forEach(j -> {
+                idList.append(j.getId() + ",");
+            });
+            log.debug("Duplicate Sql Querying, Just add to List and Wait, " + idList.toString());
+        }
+
         jobList.add(job);
         return false;
     }
@@ -182,12 +194,15 @@ public class TableClusterManager {
             j.setStatus(QueryJobStatus.SENDING);
             j.setResult(job.getResult());
             if (!j.getSync()) {
-                log.debug("Try Add Job to resultQueue, [sql=" + j.getSql() + "]");
+                log.debug("Try Add Job to resultQueue, [waiting async job=" + j + "][current job=" + job + "]");
                 resultQueue.push(j, j.getPriority());
-                log.debug("Succeed Add Job to resultQueue, [sql=" + j.getSql() + "]");
+                log.debug("Succeed Add Job to resultQueue, [waiting async job=" + j + "][current job=" + job + "]");
             } else {
                 if (j != job) {
+                    log.debug("Try to nofity sync job [waiting job=" + j + "][current job=" + job + "]");
                     notifyJob(j);
+                } else {
+                    log.debug("Self is a sync job, no need to wakeup others, job=" + j);
                 }
             }
         });
@@ -196,7 +211,7 @@ public class TableClusterManager {
     }
 
     public ResponseMessage complete(QueryJob job) {
-        log.debug("Enter complete");
+        log.debug("Enter complete, " + job);
         job.setTableClusterManager(null);
         updateCache(job);
         logoutList(job);

@@ -74,7 +74,7 @@ public class HostConnectionManager {
     public void compelte(HostConnectionKeeper hostConnectionKeeper, QueryJob job) {
         busyConnections.remove(hostConnectionKeeper);
         idleConnections.add(hostConnectionKeeper);
-        log.debug("Finished Query, Move connection from BUSY to IDLE, [connection=" + hostConnectionKeeper.connection + "]");
+        log.debug("Finished Query [" + job.getId() + "], Move connection from BUSY to IDLE, [connection=" + hostConnectionKeeper.connection + "]");
         TableClusterManager tableClusterManager = job.getTableClusterManager();
         tableClusterManager.complete(job);
     }
