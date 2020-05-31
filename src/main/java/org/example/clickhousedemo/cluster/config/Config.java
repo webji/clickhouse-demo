@@ -10,4 +10,5 @@ public class Config implements Serializable {
     Integer connectionMax = 20;
     Boolean dummy = true;
     Integer dummyDelay = 120;
+    String queryRequestUrl;
 }

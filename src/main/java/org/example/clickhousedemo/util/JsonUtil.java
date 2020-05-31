@@ -2,6 +2,7 @@ package org.example.clickhousedemo.util;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,20 @@ public class JsonUtil {
         T ret = null;
         try {
             ret = objectMapper.readValue(file, valueType);
+        } catch (JsonParseException e) {
+            log.error("Exception: ", e);
+        } catch (JsonMappingException e) {
+            log.error("Exception: ", e);
+        } catch (IOException e) {
+            log.error("Exception: ", e);
+        }
+        return ret;
+    }
+
+    public static <T> T objectOfFile(File file, TypeReference<T> valueTypeRef) {
+        T ret = null;
+        try {
+            ret = objectMapper.readValue(file, valueTypeRef);
         } catch (JsonParseException e) {
             log.error("Exception: ", e);
         } catch (JsonMappingException e) {

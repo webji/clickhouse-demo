@@ -1,5 +1,6 @@
 package org.example.clickhousedemo.cluster.query;
 
+import com.google.common.collect.Sets;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.example.clickhousedemo.cluster.config.Config;
@@ -46,7 +47,7 @@ public class QueryManager {
     /**
      * All Supported Tables
      */
-    Set<String> tableNameSet = new HashSet<>();
+    Set<String> tableNameSet = Sets.newConcurrentHashSet();
 
     /**
      * TableClusterManager binded to Table
@@ -101,7 +102,8 @@ public class QueryManager {
 
 
 
-    public ResponseMessage query(QueryJob job) {
+    public synchronized ResponseMessage query(QueryJob job) {
+        log.debug("Query: " + job);
         boolean cacheEnabled = config.getCacheEnabled();
         boolean cacheHit = false;
         String sql = job.getSql();
@@ -121,9 +123,11 @@ public class QueryManager {
             return ResponseMessage.success(job);
         } else {
             String tableName = job.getTableName();
+            log.debug("Query for tableName=" + tableName);
             if (!tableNameSet.contains(tableName)) {
                 return ResponseMessage.fail("Table Not Existed: [tableName=" + tableName + "]", job);
             }
+            log.debug("Try to find tableClusterManager for tableName" + tableName);
             TableClusterManager tableClusterManager = tableClusterManagerMap.get(tableName);
             log.debug("Found TableClusterManager for Job: [TableClusterManager=" + tableClusterManager + "][job=" + job + "]");
             return tableClusterManager.query(job);

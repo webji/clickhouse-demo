@@ -10,13 +10,35 @@ public abstract class JobWorker implements Worker, Runnable {
     String name;
     boolean running = true;
     boolean shouldQuit = false;
+    Object lock;
 
     public JobWorker(String name) {
         this.name = name;
+        lock = new Object();
     }
 
     public String getName() {
         return this.name;
+    }
+
+    private void lockWait() {
+        synchronized (lock) {
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                log.error("Exception: ", e);
+            }
+        }
+    }
+
+    private void lockNotify() {
+        synchronized (lock) {
+            try {
+                lock.notify();
+            } catch (Exception e) {
+                log.error("Exception: ", e);
+            }
+        }
     }
 
     public void start() {
@@ -29,11 +51,13 @@ public abstract class JobWorker implements Worker, Runnable {
 
     public void resume() {
         this.running = true;
+        lockNotify();
     }
 
     public void stop() {
         shouldQuit = true;
-        pause();
+        running = false;
+        lockNotify();
     }
 
     public void doJob(){}
@@ -51,6 +75,7 @@ public abstract class JobWorker implements Worker, Runnable {
                     log.error("Exception: ", e);
                 }
                 log.debug("Work is Dummy Running: [running=" + this.running + "]");
+                lockWait();
             }
         }
         log.debug("Worker is Quit: [shouldQuit=" + this.shouldQuit + "]");

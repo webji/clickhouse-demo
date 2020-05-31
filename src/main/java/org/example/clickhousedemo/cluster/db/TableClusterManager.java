@@ -1,7 +1,9 @@
 package org.example.clickhousedemo.cluster.db;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.example.clickhousedemo.cluster.query.MemoryJobQueue;
 import org.example.clickhousedemo.common.Job;
@@ -20,26 +22,35 @@ import java.util.concurrent.Executors;
 
 @Slf4j
 @Data
+@ToString(exclude = {"sqlCache", "config", "resultQueue", "hostConnectionManagerMap", "hostConnectionLock", "sqlQueryJobMap", "jobQueue", "threadExecutor"})
 public class TableClusterManager {
     String tableName;
+    @JsonIgnore
     SQLCache sqlCache;
+    @JsonIgnore
     Config config;
+    @JsonIgnore
     JobQueue resultQueue;
     /**
      * ip - HostConnectionManager
      */
+    @JsonIgnore
     Map<String, HostConnectionManager> hostConnectionManagerMap;
+    @JsonIgnore
     Object hostConnectionLock;
 
     /**
      * sql - QueryJob
      */
+    @JsonIgnore
     ConcurrentHashMap<String, List<QueryJob>> sqlQueryJobMap;
 
     /**
      * JobQueue
      */
+    @JsonIgnore
     JobQueue jobQueue;
+    @JsonIgnore
     ExecutorService threadExecutor;
 
     public TableClusterManager(String tableName) {
@@ -137,7 +148,7 @@ public class TableClusterManager {
         String sql = job.getSql();
         List<QueryJob> jobList = sqlQueryJobMap.get(sql);
         if (jobList == null) {
-            log.debug("loginList: A first Added Job: ", job);
+            log.debug("loginList: A first Added Job: " + job);
             jobList = new ArrayList<>();
             jobList.add(job);
             sqlQueryJobMap.put(sql, jobList);

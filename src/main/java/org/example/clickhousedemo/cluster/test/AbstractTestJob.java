@@ -1,6 +1,7 @@
 package org.example.clickhousedemo.cluster.test;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Data;
 import org.example.clickhousedemo.common.JobWorker;
 import org.example.clickhousedemo.common.TestJob;
@@ -8,9 +9,11 @@ import org.example.clickhousedemo.http.request.QueryRequestBody;
 import org.example.clickhousedemo.http.request.TestRequestBody;
 import org.example.clickhousedemo.util.JsonUtil;
 
+import javax.management.Query;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -30,7 +33,12 @@ public abstract class AbstractTestJob implements Serializable, TestJob {
 
     public AbstractTestJob(TestRequestBody testConfig) {
         this.testConfig = testConfig;
-        queryList = JsonUtil.objectOfResourceFile(testConfig.getFileName(), List.class);
+        List<Map<String, Object>> requestsMap = JsonUtil.objectOfResourceFile(testConfig.getFileName(), List.class);
+        queryList = new ArrayList<>();
+        for (Map<String, Object> requestMap : requestsMap) {
+            QueryRequestBody requestBody = QueryRequestBody.fromMap(requestMap);
+            queryList.add(requestBody);
+        }
         threadExectors = Executors.newFixedThreadPool(testConfig.getThreadNum());
         workers = new ArrayList<>();
     }

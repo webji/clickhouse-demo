@@ -57,6 +57,7 @@ public class HostConnectionKeeper {
                 job.setResult("ERROR");
             }
             log.debug("Completed Sync Job Query, " + job);
+            jobQueue.lockNotify();
             hostConnectionManager.compelte(this, job);
         }
     }

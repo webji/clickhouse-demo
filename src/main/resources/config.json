@@ -2,5 +2,6 @@
   "cacheEnabled": false,
   "connectionMax": 20,
   "dummy": true,
-  "dummyDelay": 300
+  "dummyDelay": 30,
+  "queryRequestUrl": "http://localhost:8080/query/"
 }

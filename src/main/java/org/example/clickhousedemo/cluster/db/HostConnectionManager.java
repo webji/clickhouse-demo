@@ -2,6 +2,7 @@ package org.example.clickhousedemo.cluster.db;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.example.clickhousedemo.cluster.query.QueryJob;
 import org.example.clickhousedemo.cluster.config.Config;
@@ -18,18 +19,25 @@ import java.util.concurrent.Executors;
 @Data
 public class HostConnectionManager {
     String ip;
+    @ToString.Exclude
     ClickHouseHost clickHouseHost;
+    @ToString.Exclude
     List<HostConnectionKeeper> idleConnections = new ArrayList<>();
+    @ToString.Exclude
     List<HostConnectionKeeper> busyConnections = new ArrayList<>();
 
+    @ToString.Exclude
     @JsonIgnore
     ExecutorService connectionThread;
 
     /**
      * sql - HostConnectionKeeper
      */
+    @ToString.Exclude
     Map<String, HostConnectionKeeper> sqlConnectionMap = new HashMap<>();
+    @ToString.Exclude
     Set<String> tableNameSet = new HashSet<>();
+    @ToString.Exclude
     Config config;
 
     public HostConnectionManager(ClickHouseHost clickHouseHost) {
